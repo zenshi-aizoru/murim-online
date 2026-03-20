@@ -1,0 +1,2159 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Murim Online | 무림 온라인</title>
+    <style>
+        :root {
+            --primary: #e94560;
+            --secondary: #0f3460;
+            --gold: #ffd700;
+            --dark: #1a1a2e;
+            --darker: #16213e;
+            --success: #00d26a;
+            --danger: #ff4757;
+            --rarity-common: #a9a9a9;
+            --rarity-uncommon: #00ff00;
+            --rarity-rare: #0064ff;
+            --rarity-epic: #9400d3;
+            --rarity-legendary: #ff8c00;
+            --rarity-mythic: #ff00ff;
+            --rarity-primordial: #ffd700;
+            --rarity-divine: #fff;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--dark) 0%, var(--darker) 50%, #0f3460 100%);
+            color: #e8e8e8;
+            min-height: 100vh;
+            overflow-x: hidden;
+            font-size: 14px;
+        }
+        
+        .game-container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 16px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .lang-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(255,215,0,0.1);
+            border: 2px solid var(--gold);
+            border-radius: 25px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-weight: bold;
+            color: var(--gold);
+            transition: all 0.3s;
+        }
+        
+        .lang-toggle:hover {
+            background: var(--gold);
+            color: var(--dark);
+        }
+        
+        .header {
+            text-align: center;
+            padding: 30px 0;
+            border-bottom: 3px solid var(--primary);
+            margin-bottom: 20px;
+        }
+        
+        .title {
+            font-size: 32px;
+            background: linear-gradient(45deg, var(--gold), #ff6b6b, var(--gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 3px;
+            font-weight: bold;
+        }
+        
+        .subtitle {
+            font-size: 14px;
+            color: #888;
+            margin-top: 8px;
+            font-style: italic;
+        }
+        
+        .screen {
+            display: none;
+            animation: fadeIn 0.5s ease;
+            flex: 1;
+        }
+        
+        .screen.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 16px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, #ff6b6b 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(233,69,96,0.4);
+        }
+        
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+        
+        .btn-gold {
+            background: linear-gradient(135deg, var(--gold) 0%, #ff8c00 100%);
+            color: #1a1a2e;
+            box-shadow: 0 4px 15px rgba(255,215,0,0.4);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .card {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 14px;
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 15px;
+            margin: 8px 0;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        
+        .class-card {
+            background: rgba(255,255,255,0.03);
+            border: 2px solid transparent;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .class-card.selected {
+            border-color: var(--gold);
+            background: rgba(255,215,0,0.1);
+            transform: scale(1.05);
+        }
+        
+        .class-icon {
+            font-size: 40px;
+            margin-bottom: 8px;
+        }
+        
+        .gacha-orb {
+            width: 150px;
+            height: 150px;
+            margin: 30px auto;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #fff, var(--gold), #ff6b00);
+            box-shadow: 0 0 60px rgba(255,215,0,0.5);
+            animation: pulse 2s infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .rarity-Common { color: var(--rarity-common); border-color: var(--rarity-common); }
+        .rarity-Uncommon { color: var(--rarity-uncommon); border-color: var(--rarity-uncommon); }
+        .rarity-Rare { color: var(--rarity-rare); border-color: var(--rarity-rare); }
+        .rarity-Epic { color: var(--rarity-epic); border-color: var(--rarity-epic); }
+        .rarity-Legendary { color: var(--rarity-legendary); border-color: var(--rarity-legendary); }
+        .rarity-Mythic { color: var(--rarity-mythic); border-color: var(--rarity-mythic); }
+        .rarity-Primordial { color: var(--rarity-primordial); border-color: var(--rarity-primordial); animation: glow 2s infinite; }
+        
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 10px rgba(255,215,0,0.3); }
+            50% { box-shadow: 0 0 30px rgba(255,215,0,0.8); }
+        }
+        
+        .stat-bar {
+            height: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        
+        .stat-fill {
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+        
+        .hp-fill { background: linear-gradient(90deg, #e94560, #ff6b6b); }
+        .qi-fill { background: linear-gradient(90deg, #0064ff, #00bfff); }
+        .exp-fill { background: linear-gradient(90deg, #9400d3, #ff00ff); }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .modal.active { display: flex; }
+        
+        .modal-content {
+            background: linear-gradient(135deg, var(--dark) 0%, var(--darker) 100%);
+            border: 3px solid var(--primary);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: rgba(233,69,96,0.95);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            animation: slideDown 0.5s ease;
+            z-index: 1500;
+        }
+        
+        @keyframes slideDown {
+            from { transform: translateY(-100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
+        ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 3px; }
+        
+        @media (max-width: 380px) {
+            .title { font-size: 24px; }
+            .grid-2 { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <button class="lang-toggle" onclick="toggleLanguage()">🇮🇩 ID / EN 🇬🇧</button>
+        
+        <div class="header">
+            <div class="title">⚔️ MURIM ONLINE</div>
+            <div class="subtitle" data-lang="subtitle">Path to Immortality</div>
+        </div>
+        
+        <!-- Language Select -->
+        <div id="screen-lang" class="screen active">
+            <div style="text-align: center; padding: 60px 20px;">
+                <div style="font-size: 80px; margin-bottom: 30px;">🌏</div>
+                <h2 style="color: var(--gold); margin-bottom: 40px;">Choose Your Path</h2>
+                <button class="btn btn-primary" onclick="setLanguage('id')" style="margin-bottom: 15px;">🇮🇩 Bahasa Indonesia</button>
+                <button class="btn btn-gold" onclick="setLanguage('en')">🇬🇧 English</button>
+            </div>
+        </div>
+        
+        <!-- Main Menu -->
+        <div id="screen-menu" class="screen">
+            <div style="text-align: center; padding: 20px;">
+                <div style="font-size: 100px; margin-bottom: 20px;">🗡️</div>
+                <h2 style="color: var(--gold); margin-bottom: 30px;" data-lang="welcome">Welcome to Murim</h2>
+                <button class="btn btn-primary" onclick="showScreen('screen-creation')" data-lang="newGame">New Game</button>
+                <button class="btn btn-secondary" onclick="showScreen('screen-load')" data-lang="loadGame">Load Game</button>
+                <button class="btn btn-gold" onclick="showScreen('screen-hall-legends')" data-lang="hallOfLegends">Hall of Legends</button>
+                <button class="btn btn-secondary" onclick="showScreen('screen-settings')" data-lang="settings">Settings</button>
+            </div>
+        </div>
+        
+        <!-- Character Creation -->
+        <div id="screen-creation" class="screen">
+            <div class="card">
+                <h3 style="color: var(--gold); margin-bottom: 20px;" data-lang="createCharacter">Create Character</h3>
+                <input type="text" id="input-name" placeholder="Enter name..." maxlength="20">
+                <select id="input-gender">
+                    <option value="male" data-lang="male">Male ♂️</option>
+                    <option value="female" data-lang="female">Female ♀️</option>
+                </select>
+                <p style="margin: 15px 0 10px; color: #888;" data-lang="selectClasses">Select 2 Classes:</p>
+                <div class="grid-2" id="class-grid"></div>
+                <button class="btn btn-primary" id="btn-create" onclick="startGacha()" disabled data-lang="continue">Continue</button>
+                <button class="btn btn-secondary" onclick="showScreen('screen-menu')" data-lang="back">Back</button>
+            </div>
+        </div>
+        
+        <!-- Bloodline Gacha -->
+        <div id="screen-gacha" class="screen">
+            <div style="text-align: center;">
+                <div class="gacha-orb" id="gacha-orb">🎲</div>
+                <h3 style="color: var(--gold);" data-lang="bloodlineAwakening">Bloodline Awakening</h3>
+                <p style="color: #888; margin: 10px 0 20px;" data-lang="gachaDesc">Roll 10x - Keep 1</p>
+                <button class="btn btn-gold" id="btn-roll" onclick="rollBloodlines()" data-lang="roll">Roll</button>
+                <div id="bloodline-list" style="margin-top: 20px; display: none;"></div>
+                <button class="btn btn-primary" id="btn-confirm-bloodline" style="display: none; margin-top: 20px;" onclick="confirmBloodline()" data-lang="confirm">Confirm</button>
+            </div>
+        </div>
+        
+        <!-- Load Game -->
+        <div id="screen-load" class="screen">
+            <h3 style="color: var(--gold); margin-bottom: 20px;" data-lang="selectSave">Select Save</h3>
+            <div id="save-slots"></div>
+            <button class="btn btn-secondary" onclick="showScreen('screen-menu')" data-lang="back">Back</button>
+        </div>
+        
+        <!-- Main Game -->
+        <div id="screen-game" class="screen">
+            <div class="card" style="padding: 15px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-size: 18px; font-weight: bold; color: var(--gold);" id="game-name">Name</div>
+                        <div style="font-size: 12px; color: #888;" id="game-realm">Realm</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 12px; color: #888;">💎 <span id="game-stones">0</span></div>
+                        <div style="font-size: 12px; color: #888;">⚡ <span id="game-power">0</span></div>
+                    </div>
+                </div>
+                <div style="margin-top: 10px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 12px;">
+                        <span>HP</span>
+                        <span id="text-hp">100/100</span>
+                    </div>
+                    <div class="stat-bar"><div class="stat-fill hp-fill" id="bar-hp" style="width: 100%"></div></div>
+                </div>
+                <div style="margin-top: 8px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 12px;">
+                        <span>Qi</span>
+                        <span id="text-qi">100/100</span>
+                    </div>
+                    <div class="stat-bar"><div class="stat-fill qi-fill" id="bar-qi" style="width: 100%"></div></div>
+                </div>
+                <div style="margin-top: 8px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 12px;">
+                        <span>EXP</span>
+                        <span id="text-exp">0/100</span>
+                    </div>
+                    <div class="stat-bar"><div class="stat-fill exp-fill" id="bar-exp" style="width: 0%"></div></div>
+                </div>
+            </div>
+            
+            <div class="card" style="padding: 10px 15px; display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 13px; color: #888;" data-lang="location">Location:</span>
+                <span style="font-weight: bold; color: var(--gold);" id="current-location">Spirit Forest</span>
+                <button class="btn btn-secondary" style="padding: 5px 10px; font-size: 11px; width: auto;" onclick="openWorldMap()" data-lang="travel">Travel</button>
+            </div>
+            
+            <div class="card" id="story-panel" style="max-height: 150px; overflow-y: auto; font-size: 13px; line-height: 1.6;">
+                <p data-lang="welcomeText">Welcome to the world of Murim...</p>
+            </div>
+            
+            <div class="grid-2">
+                <button class="btn btn-primary" onclick="actionCultivate()">
+                    <div style="font-size: 24px;">🧘</div>
+                    <div data-lang="meditate">Meditate</div>
+                </button>
+                <button class="btn btn-secondary" onclick="actionExplore()">
+                    <div style="font-size: 24px;">🗺️</div>
+                    <div data-lang="explore">Explore</div>
+                </button>
+                <button class="btn btn-secondary" onclick="actionHunt()">
+                    <div style="font-size: 24px;">⚔️</div>
+                    <div data-lang="hunt">Hunt</div>
+                </button>
+                <button class="btn btn-secondary" onclick="openInventory()">
+                    <div style="font-size: 24px;">🎒</div>
+                    <div data-lang="inventory">Inventory</div>
+                </button>
+                <button class="btn btn-secondary" onclick="openCrafting()" id="btn-craft">
+                    <div style="font-size: 24px;">⚗️</div>
+                    <div data-lang="craft">Craft</div>
+                </button>
+                <button class="btn btn-secondary" onclick="openMarket()">
+                    <div style="font-size: 24px;">🏪</div>
+                    <div data-lang="market">Market</div>
+                </button>
+                <button class="btn btn-secondary" onclick="openSect()" id="btn-sect" style="display: none;">
+                    <div style="font-size: 24px;">🏯</div>
+                    <div data-lang="sect">Sect</div>
+                </button>
+                <button class="btn btn-secondary" onclick="openQuest()">
+                    <div style="font-size: 24px;">📜</div>
+                    <div data-lang="quest">Quest</div>
+                </button>
+            </div>
+            
+            <button class="btn btn-gold" id="btn-ascend" style="display: none; margin-top: 10px;" onclick="openAscension()">
+                <div style="font-size: 20px;">👑</div>
+                <div data-lang="ascend">Ascension</div>
+            </button>
+            
+            <button class="btn btn-secondary" onclick="openMenu()" style="margin-top: 10px;" data-lang="menu">Menu</button>
+        </div>
+        
+        <!-- Combat Screen -->
+        <div id="screen-combat" class="screen">
+            <div class="card" style="text-align: center; background: rgba(233,69,96,0.1);">
+                <div style="font-size: 20px; color: #ff6b6b; font-weight: bold;" id="combat-enemy-name">Enemy</div>
+                <div style="font-size: 100px; margin: 20px 0;" id="combat-enemy-sprite">👹</div>
+                <div>
+                    <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 5px;">
+                        <span>HP: <span id="combat-enemy-hp">100</span>/<span id="combat-enemy-max">100</span></span>
+                        <span style="color: var(--gold);" id="combat-enemy-rank">Rank</span>
+                    </div>
+                    <div class="stat-bar"><div class="stat-fill hp-fill" id="combat-enemy-bar" style="width: 100%"></div></div>
+                </div>
+            </div>
+            <div class="card" id="combat-log" style="max-height: 120px; overflow-y: auto; font-size: 12px;"></div>
+            <div class="grid-2">
+                <button class="btn btn-primary" onclick="combatAttack()">
+                    <div style="font-size: 20px;">⚔️</div>
+                    <div data-lang="attack">Attack</div>
+                </button>
+                <button class="btn btn-secondary" onclick="combatSkill()">
+                    <div style="font-size: 20px;">✨</div>
+                    <div data-lang="skill">Skill</div>
+                </button>
+                <button class="btn btn-secondary" onclick="combatItem()">
+                    <div style="font-size: 20px;">🧪</div>
+                    <div data-lang="item">Item</div>
+                </button>
+                <button class="btn btn-secondary" onclick="combatFlee()">
+                    <div style="font-size: 20px;">🏃</div>
+                    <div data-lang="flee">Flee</div>
+                </button>
+            </div>
+        </div>
+        
+        <!-- World Map -->
+        <div id="screen-map" class="screen">
+            <h3 style="color: var(--gold); margin-bottom: 20px;" data-lang="worldMap">World Map</h3>
+            <div id="map-locations" class="grid-2"></div>
+            <button class="btn btn-secondary" onclick="showScreen('screen-game')" data-lang="back">Back</button>
+        </div>
+        
+        <!-- Inventory -->
+        <div id="screen-inventory" class="screen">
+            <h3 style="color: var(--gold); margin-bottom: 20px;" data-lang="inventory">Inventory</h3>
+            <div id="inventory-content"></div>
+            <button class="btn btn-secondary" onclick="showScreen('screen-game')" data-lang="back">Back</button>
+        </div>
+        
+        <!-- Crafting -->
+        <div id="screen-crafting" class="screen">
+            <h3 style="color: var(--gold); margin-bottom: 20px;" data-lang="crafting">Crafting</h3>
+            <div id="crafting-content"></div>
+            <button class="btn btn-secondary" onclick="showScreen('screen-game')" data-lang="back">Back</button>
+        </div>
+        
+        <!-- Market -->
+        <div id="screen-market" class="screen">
+            <h3 style="color: var(--gold); margin-bottom: 10px;" data-lang="market">Market</h3>
+            <div style="text-align: center; margin-bottom: 15px; padding: 10px; background: rgba(255,215,0,0.1); border-radius: 10px;">
+                <span data-lang="yourStones">Your Spirit Stones:</span>
+                <span style="color: var(--gold); font-weight: bold; font-size: 18px;" id="market-stones">0</span>
+            </div>
+            <div id="market-content"></div>
+            <button class="btn btn-secondary" onclick="showScreen('screen-game')" data-lang="back">Back</button>
+        </div>
+        
+        <!-- Sect -->
+        <div id="screen-sect" class="screen">
+            <div class="card" style="text-align: center; border-color: var(--gold);">
+                <div style="font-size: 24px; color: var(--gold); font-weight: bold;" id="sect-name">My Sect</div>
+                <div style="font-size: 13px; color: #888; margin-top: 5px;" id="sect-info">Level 1 • 0 Disciples</div>
+            </div>
+            <div class="grid-2" style="margin-top: 15px;">
+                <button class="btn btn-primary" onclick="recruitDisciple()">
+                    <div style="font-size: 20px;">👥</div>
+                    <div data-lang="recruit">Recruit</div>
+                </button>
+                <button class="btn btn-secondary" onclick="showScreen('screen-game')" data-lang="back">Back</button>
+            </div>
+            <div class="card" style="margin-top: 15px;">
+                <h4 style="color: var(--gold); margin-bottom: 10px;" data-lang="disciples">Disciples</h4>
+                <div id="sect-disciples"></div>
+            </div>
+        </div>
+        
+        <!-- Quest -->
+        <div id="screen-quest" class="screen">
+            <h3 style="color: var(--gold); margin-bottom: 20px;" data-lang="quests">Quests</h3>
+            <div class="card">
+                <div style="color: var(--gold); font-weight: bold; margin-bottom: 10px;" data-lang="dailyQuests">Daily Quests</div>
+                <div id="daily-quests"></div>
+            </div>
+            <button class="btn btn-secondary" onclick="showScreen('screen-game')" data-lang="back">Back</button>
+        </div>
+        
+        <!-- Hall of Legends -->
+        <div id="screen-hall-legends" class="screen">
+            <h3 style="color: var(--gold); margin-bottom: 10px;">🏛️ <span data-lang="hallOfLegends">Hall of Legends</span></h3>
+            <div class="card" style="text-align: center; background: rgba(255,215,0,0.1); border-color: var(--gold);">
+                <div style="font-size: 14px; color: #888;" data-lang="totalAscensions">Total Ascensions</div>
+                <div style="font-size: 48px; color: var(--gold); font-weight: bold;" id="total-ascensions">0</div>
+                <div style="font-size: 13px; color: var(--gold); margin-top: 5px;" id="ascension-bonus">No Bonus</div>
+            </div>
+            <div class="card" style="margin-top: 15px;">
+                <h4 style="color: var(--gold); margin-bottom: 10px;" data-lang="divineEssence">Divine Essence</h4>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 24px;">✨ <span id="divine-essence">0</span></span>
+                    <button class="btn btn-gold" style="width: auto; padding: 8px 15px; font-size: 12px;" onclick="openDivineShop()" data-lang="shop">Shop</button>
+                </div>
+            </div>
+            <div class="card" style="margin-top: 15px;">
+                <h4 style="color: var(--gold); margin-bottom: 10px;" data-lang="ascendedHeroes">Ascended Heroes</h4>
+                <div id="legends-list"></div>
+            </div>
+            <button class="btn btn-secondary" onclick="showScreen('screen-menu')" data-lang="back">Back</button>
+        </div>
+        
+        <!-- Divine Shop -->
+        <div id="screen-divine-shop" class="screen">
+            <h3 style="color: var(--gold); margin-bottom: 20px;">✨ <span data-lang="divineShop">Divine Shop</span></h3>
+            <div style="text-align: center; margin-bottom: 20px;">
+                <span data-lang="yourEssence">Your Essence:</span>
+                <span style="color: var(--gold); font-weight: bold;" id="shop-essence">0</span>
+            </div>
+            <div id="divine-shop-items"></div>
+            <button class="btn btn-secondary" onclick="showScreen('screen-hall-legends')" data-lang="back">Back</button>
+        </div>
+        
+        <!-- Ascension Choice -->
+        <div id="screen-ascension" class="screen">
+            <div style="text-align: center; padding: 40px 20px;">
+                <div style="font-size: 80px; margin-bottom: 20px;">👑</div>
+                <h2 style="color: var(--gold); margin-bottom: 20px;" data-lang="ascensionTitle">Primordial Sovereign</h2>
+                <p style="color: #888; margin-bottom: 30px; line-height: 1.6;" data-lang="ascensionDesc">You have reached the pinnacle of mortal cultivation...</p>
+                <div class="card" style="border-color: var(--gold); margin-bottom: 15px;">
+                    <h3 style="color: var(--gold);" data-lang="ascend">ASCEND</h3>
+                    <p style="font-size: 13px; color: #888; margin: 10px 0;" data-lang="ascendDesc">Become a God...</p>
+                    <button class="btn btn-gold" onclick="chooseAscension(true)" data-lang="btnAscend">Become Divine</button>
+                </div>
+                <div class="card" style="border-color: var(--primary);">
+                    <h3 style="color: var(--primary);" data-lang="stay">STAY</h3>
+                    <p style="font-size: 13px; color: #888; margin: 10px 0;" data-lang="stayDesc">Remain mortal...</p>
+                    <button class="btn btn-primary" onclick="chooseAscension(false)" data-lang="btnStay">Remain Mortal</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Leaderboard -->
+        <div id="screen-leaderboard" class="screen">
+            <h3 style="color: var(--gold); margin-bottom: 15px;">🏆 <span data-lang="leaderboard">Leaderboard</span></h3>
+            <div style="display: flex; overflow-x: auto; gap: 8px; margin-bottom: 15px;">
+                <button class="btn btn-primary" style="flex-shrink: 0; padding: 8px 15px; font-size: 12px;" onclick="switchLB('overall')">Overall</button>
+                <button class="btn btn-secondary" style="flex-shrink: 0; padding: 8px 15px; font-size: 12px;" onclick="switchLB('combat')">Combat</button>
+                <button class="btn btn-secondary" style="flex-shrink: 0; padding: 8px 15px; font-size: 12px;" onclick="switchLB('agility')">Agility</button>
+                <button class="btn btn-secondary" style="flex-shrink: 0; padding: 8px 15px; font-size: 12px;" onclick="switchLB('qi')">Qi</button>
+                <button class="btn btn-secondary" style="flex-shrink: 0; padding: 8px 15px; font-size: 12px;" onclick="switchLB('body')">Body</button>
+                <button class="btn btn-secondary" style="flex-shrink: 0; padding: 8px 15px; font-size: 12px;" onclick="switchLB('sect')">Sect</button>
+                <button class="btn btn-secondary" style="flex-shrink: 0; padding: 8px 15px; font-size: 12px;" onclick="switchLB('wealth')">Wealth</button>
+                <button class="btn btn-secondary" style="flex-shrink: 0; padding: 8px 15px; font-size: 12px;" onclick="switchLB('hunter')">Hunter</button>
+                <button class="btn btn-secondary" style="flex-shrink: 0; padding: 8px 15px; font-size: 12px;" onclick="switchLB('speed')">Speed</button>
+            </div>
+            <div id="leaderboard-content"></div>
+            <button class="btn btn-secondary" onclick="showScreen('screen-menu')" data-lang="back">Back</button>
+        </div>
+        
+        <!-- Settings -->
+        <div id="screen-settings" class="screen">
+            <h3 style="color: var(--gold); margin-bottom: 20px;" data-lang="gameMenu">Game Menu</h3>
+            <button class="btn btn-primary" onclick="saveGameManual()" data-lang="saveGame">Save Game</button>
+            <button class="btn btn-secondary" onclick="exportSave()" data-lang="exportSave">Export Save</button>
+            <button class="btn btn-secondary" onclick="document.getElementById('import-file').click()" data-lang="importSave">Import Save</button>
+            <input type="file" id="import-file" style="display: none;" accept=".json" onchange="importSave(this)">
+            <button class="btn btn-gold" onclick="showScreen('screen-leaderboard')" data-lang="leaderboard">Leaderboard</button>
+            <button class="btn btn-secondary" onclick="showScreen('screen-game')" data-lang="resume">Resume</button>
+            <button class="btn btn-secondary" onclick="showScreen('screen-menu')" data-lang="mainMenu">Main Menu</button>
+        </div>
+        
+        <!-- Modal -->
+        <div id="modal" class="modal">
+            <div class="modal-content">
+                <h3 style="color: var(--gold); margin-bottom: 15px;" id="modal-title">Title</h3>
+                <div id="modal-text" style="margin-bottom: 20px; line-height: 1.6;"></div>
+                <button class="btn btn-primary" onclick="closeModal()" data-lang="close">Close</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        // ==================== LANGUAGE SYSTEM ====================
+        const lang = {
+            id: {
+                subtitle: "Jalan Menuju Keabadian",
+                welcome: "Selamat Datang di Murim",
+                newGame: "Game Baru",
+                loadGame: "Muat Game",
+                hallOfLegends: "Aula Legenda",
+                settings: "Pengaturan",
+                createCharacter: "Buat Karakter",
+                male: "Pria ♂️",
+                female: "Wanita ♀️",
+                selectClasses: "Pilih 2 Kelas:",
+                continue: "Lanjutkan",
+                back: "Kembali",
+                bloodlineAwakening: "Kebangkitan Bloodline",
+                gachaDesc: "Roll 10x - Simpan 1",
+                roll: "Roll",
+                confirm: "Konfirmasi",
+                selectSave: "Pilih Save",
+                location: "Lokasi:",
+                travel: "Travel",
+                meditate: "Meditasi",
+                explore: "Jelajah",
+                hunt: "Berburu",
+                inventory: "Inventori",
+                craft: "Craft",
+                market: "Pasar",
+                sect: "Sekte",
+                quest: "Quest",
+                ascend: "Ascension",
+                menu: "Menu",
+                attack: "Serang",
+                skill: "Skill",
+                item: "Item",
+                flee: "Kabur",
+                worldMap: "Peta Dunia",
+                crafting: "Crafting",
+                yourStones: "Spirit Stones:",
+                recruit: "Rekrut",
+                disciples: "Murid",
+                quests: "Quest",
+                dailyQuests: "Quest Harian",
+                totalAscensions: "Total Ascension",
+                divineEssence: "Essence Ilahi",
+                shop: "Toko",
+                ascendedHeroes: "Pahlawan Ascension",
+                divineShop: "Toko Ilahi",
+                yourEssence: "Essence:",
+                ascensionTitle: "Penguasa Purba",
+                ascensionDesc: "Kamu telah mencapai puncak kultivasi mortal...",
+                ascend: "ASCEND",
+                ascendDesc: "Jadilah Dewa. Karakter masuk Aula Legenda.",
+                stay: "TETAP",
+                stayDesc: "Tetap mortal. Unlock konten endgame.",
+                btnAscend: "Jadi Dewa",
+                btnStay: "Tetap Mortal",
+                leaderboard: "Papan Peringkat",
+                gameMenu: "Menu Game",
+                saveGame: "Simpan Game",
+                exportSave: "Export Save",
+                importSave: "Import Save",
+                resume: "Lanjutkan",
+                mainMenu: "Menu Utama",
+                close: "Tutup",
+                welcomeText: "Selamat datang di dunia Murim...",
+                realm: "Realm",
+                stage: "Tahap",
+                year: "tahun",
+                emptySlot: "Kosong",
+                noSect: "Belum ada Sekte",
+                items: "Item",
+                equipment: "Equipment",
+                materials: "Material",
+                alchemy: "Alkemi",
+                forging: "Forging",
+                enchant: "Enchant",
+                notEnoughQi: "Qi tidak cukup!",
+                notEnoughStones: "Spirit Stones tidak cukup!",
+                inventoryEmpty: "Inventori kosong",
+                gameSaved: "Game disimpan!",
+                exported: "Save diexport!",
+                imported: "Save diimport!",
+                noGame: "Tidak ada game aktif!",
+                invalidFile: "File tidak valid!",
+                error: "Error",
+                enterName: "Masukkan nama!",
+                breakthrough: "Breakthrough!",
+                breakthroughFail: "Breakthrough gagal!",
+                combatStart: "Pertarungan dimulai melawan",
+                youAttack: "Kamu menyerang",
+                critical: "CRITICAL",
+                damage: "damage",
+                attacks: "menyerang",
+                usedPill: "Menggunakan pil",
+                fleeSuccess: "Kabur berhasil!",
+                fleeFail: "Gagal kabur!",
+                defeated: "Dikalahkan",
+                spiritStones: "Spirit Stones",
+                kills: "kill",
+                heal40: "Darah pulih +40",
+                int3: "INT +3",
+                str2agi2: "STR +2 AGI +2",
+                foundStones: "Menemukan {0} Spirit Stones",
+                nearDeath: "Kematian Mendekat",
+                awakenPotential: "Potensi terbuka! Semua stat +5",
+                bloodlineEvolve: "Bloodline berevolusi!",
+                ironWill: "Tekad besi! VIT +8",
+                classEvolved: "Kelas Berevolusi!",
+                evolvedTo: " berevolusi menjadi ",
+                statsIncreased: "Stat meningkat!",
+                sectUnlocked: "Sekte Terbuka!",
+                sectDesc: "Kamu sekarang bisa membangun sekte sendiri.",
+                discipleRecruited: "Murid Direkrut!",
+                talent: "Talent",
+                death: "Kematian",
+                deathAge: "Umur habis sebelum mencapai Foundation...",
+                welcomeBack: "Selamat datang kembali,"
+            },
+            en: {
+                subtitle: "Path to Immortality",
+                welcome: "Welcome to Murim",
+                newGame: "New Game",
+                loadGame: "Load Game",
+                hallOfLegends: "Hall of Legends",
+                settings: "Settings",
+                createCharacter: "Create Character",
+                male: "Male ♂️",
+                female: "Female ♀️",
+                selectClasses: "Select 2 Classes:",
+                continue: "Continue",
+                back: "Back",
+                bloodlineAwakening: "Bloodline Awakening",
+                gachaDesc: "Roll 10x - Keep 1",
+                roll: "Roll",
+                confirm: "Confirm",
+                selectSave: "Select Save",
+                location: "Location:",
+                travel: "Travel",
+                meditate: "Meditate",
+                explore: "Explore",
+                hunt: "Hunt",
+                inventory: "Inventory",
+                craft: "Craft",
+                market: "Market",
+                sect: "Sect",
+                quest: "Quest",
+                ascend: "Ascension",
+                menu: "Menu",
+                attack: "Attack",
+                skill: "Skill",
+                item: "Item",
+                flee: "Flee",
+                worldMap: "World Map",
+                crafting: "Crafting",
+                yourStones: "Your Spirit Stones:",
+                recruit: "Recruit",
+                disciples: "Disciples",
+                quests: "Quests",
+                dailyQuests: "Daily Quests",
+                totalAscensions: "Total Ascensions",
+                divineEssence: "Divine Essence",
+                shop: "Shop",
+                ascendedHeroes: "Ascended Heroes",
+                divineShop: "Divine Shop",
+                yourEssence: "Your Essence:",
+                ascensionTitle: "Primordial Sovereign",
+                ascensionDesc: "You have reached the pinnacle of mortal cultivation...",
+                ascend: "ASCEND",
+                ascendDesc: "Become a God. Character enters Hall of Legends.",
+                stay: "STAY",
+                stayDesc: "Remain mortal. Unlock endgame content.",
+                btnAscend: "Become Divine",
+                btnStay: "Remain Mortal",
+                leaderboard: "Leaderboard",
+                gameMenu: "Game Menu",
+                saveGame: "Save Game",
+                exportSave: "Export Save",
+                importSave: "Import Save",
+                resume: "Resume",
+                mainMenu: "Main Menu",
+                close: "Close",
+                welcomeText: "Welcome to the world of Murim...",
+                realm: "Realm",
+                stage: "Stage",
+                year: "years old",
+                emptySlot: "Empty",
+                noSect: "No Sect",
+                items: "Items",
+                equipment: "Equipment",
+                materials: "Materials",
+                alchemy: "Alchemy",
+                forging: "Forging",
+                enchant: "Enchant",
+                notEnoughQi: "Not enough Qi!",
+                notEnoughStones: "Not enough Spirit Stones!",
+                inventoryEmpty: "Inventory empty",
+                gameSaved: "Game saved!",
+                exported: "Save exported!",
+                imported: "Save imported!",
+                noGame: "No active game!",
+                invalidFile: "Invalid file!",
+                error: "Error",
+                enterName: "Enter name!",
+                breakthrough: "Breakthrough!",
+                breakthroughFail: "Breakthrough failed!",
+                combatStart: "Combat started against",
+                youAttack: "You attack",
+                critical: "CRITICAL",
+                damage: "damage",
+                attacks: "attacks",
+                usedPill: "Used pill",
+                fleeSuccess: "Flee success!",
+                fleeFail: "Flee failed!",
+                defeated: "Defeated",
+                spiritStones: "Spirit Stones",
+                kills: "kills",
+                heal40: "Healed +40",
+                int3: "INT +3",
+                str2agi2: "STR +2 AGI +2",
+                foundStones: "Found {0} Spirit Stones",
+                nearDeath: "Near Death",
+                awakenPotential: "Potential awakened! All stats +5",
+                bloodlineEvolve: "Bloodline evolved!",
+                ironWill: "Iron will! VIT +8",
+                classEvolved: "Class Evolved!",
+                evolvedTo: " evolved to ",
+                statsIncreased: "Stats increased!",
+                sectUnlocked: "Sect Unlocked!",
+                sectDesc: "You can now build your own sect.",
+                discipleRecruited: "Disciple Recruited!",
+                talent: "Talent",
+                death: "Death",
+                deathAge: "Died before reaching Foundation...",
+                welcomeBack: "Welcome back,"
+            }
+        };
+
+        // ==================== GAME DATA ====================
+        const classes = [
+            { id: 'Swordsman', icon: '⚔️' },
+            { id: 'Assassin', icon: '🗡️' },
+            { id: 'Warrior', icon: '🛡️' },
+            { id: 'Mage', icon: '🔮' },
+            { id: 'Alchemist', icon: '⚗️' },
+            { id: 'BeastTamer', icon: '🐺' }
+        ];
+
+        const realms = [
+            'Body Tempering', 'Qi Gathering', 'Foundation Establishment', 'Core Formation',
+            'Nascent Soul', 'Soul Transformation', 'Saint Realm', 'Immortal Realm',
+            'True Immortal', 'Heaven Sovereign', 'Primordial Sovereign'
+        ];
+
+        const bloodlineNames = {
+            Common: ['Fire Bloodline', 'Wind Bloodline', 'Earth Bloodline', 'Water Bloodline'],
+            Uncommon: ['Iron Body', 'Swift Foot', 'Keen Eye'],
+            Rare: ['Thunder Wolf', 'Ice Heart', 'Poison Vein'],
+            Epic: ['Shadow Soul', 'Storm Born', 'Flame Heart'],
+            Legendary: ['Phoenix', 'Dragon', 'Void Walker'],
+            Mythic: ['Chaos', 'Time Lord', 'Space Weaver'],
+            Primordial: ['Primordial Dragon', 'Heavenly Dao', 'Creation']
+        };
+
+        const beasts = [
+            { name: 'Spirit Rabbit', emoji: '🐰', rank: 'Mortal', hp: 30, dmg: 5, exp: 10, stones: 5 },
+            { name: 'Iron Wolf', emoji: '🐺', rank: 'Mortal', hp: 60, dmg: 12, exp: 25, stones: 12 },
+            { name: 'Forest Bear', emoji: '🐻', rank: 'Spirit', hp: 100, dmg: 20, exp: 45, stones: 25 },
+            { name: 'Thunder Tiger', emoji: '🐯', rank: 'Spirit', hp: 140, dmg: 30, exp: 70, stones: 40 },
+            { name: 'Serpent King', emoji: '🐍', rank: 'Earth', hp: 200, dmg: 45, exp: 120, stones: 80 },
+            { name: 'Demonic Crow', emoji: '🦅', rank: 'Earth', hp: 180, dmg: 50, exp: 110, stones: 75 },
+            { name: 'Ancient Dragon', emoji: '🐉', rank: 'Heaven', hp: 500, dmg: 100, exp: 500, stones: 500 }
+        ];
+
+        const locations = [
+            { name: 'Spirit Forest', emoji: '🌲', tier: 1 },
+            { name: 'Ancient Ruins', emoji: '🏛️', tier: 2 },
+            { name: 'Demon Cave', emoji: '👹', tier: 3 },
+            { name: 'Azure City', emoji: '🏙️', tier: 1 },
+            { name: 'Spirit Mountain', emoji: '⛰️', tier: 2 },
+            { name: 'Forbidden Valley', emoji: '🌑', tier: 3 },
+            { name: 'Heavenly Peak', emoji: '☁️', tier: 4 },
+            { name: 'Void Rift', emoji: '🌌', tier: 5 }
+        ];
+
+        // ==================== GLOBAL STATE ====================
+        let currentLang = 'id';
+        let gameState = null;
+        let selectedClasses = [];
+        let selectedBloodline = null;
+        let currentEnemy = null;
+        let autoSaveInterval = null;
+        let currentLB = 'overall';
+
+        // Ascension bonuses (persistent across saves)
+        let ascensionData = {
+            count: 0,
+            essence: 0,
+            legends: [],
+            bonuses: {
+                expBoost: 0,
+                startStones: 0,
+                freeRoll: 0,
+                dropRate: 0,
+                unlockTier: 'Common',
+                startStage: 1,
+                extraClass: 0,
+                autoCultivate: false
+            }
+        };
+
+        // ==================== INITIALIZATION ====================
+        function init() {
+            loadAscensionData();
+            generateClassGrid();
+            updateLanguage();
+            loadSaveSlots();
+            generateLeaderboard();
+            updateHallOfLegends();
+        }
+
+        function loadAscensionData() {
+            const saved = localStorage.getItem('murim_ascension');
+            if (saved) {
+                ascensionData = JSON.parse(saved);
+            }
+        }
+
+        function saveAscensionData() {
+            localStorage.setItem('murim_ascension', JSON.stringify(ascensionData));
+        }
+
+        // ==================== LANGUAGE FUNCTIONS ====================
+        function setLanguage(l) {
+            currentLang = l;
+            updateLanguage();
+            showScreen('screen-menu');
+        }
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'id' ? 'en' : 'id';
+            updateLanguage();
+        }
+
+        function updateLanguage() {
+            document.querySelectorAll('[data-lang]').forEach(el => {
+                const key = el.getAttribute('data-lang');
+                if (lang[currentLang][key]) {
+                    el.textContent = lang[currentLang][key];
+                }
+            });
+        }
+
+        function t(key) {
+            return lang[currentLang][key] || key;
+        }
+
+        // ==================== SCREEN MANAGEMENT ====================
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            
+            if (screenId === 'screen-game' && gameState) {
+                updateGameUI();
+                startAutoSave();
+            } else {
+                stopAutoSave();
+            }
+            
+            if (screenId === 'screen-hall-legends') {
+                updateHallOfLegends();
+            }
+        }
+
+        // ==================== CLASS SELECTION ====================
+        function generateClassGrid() {
+            const grid = document.getElementById('class-grid');
+            grid.innerHTML = classes.map(c => `
+                <div class="class-card" data-class="${c.id}" onclick="selectClass('${c.id}')">
+                    <span class="class-icon">${c.icon}</span>
+                    <div class="class-name">${c.id}</div>
+                    <div class="class-desc">${c.id}</div>
+                </div>
+            `).join('');
+        }
+
+        function selectClass(classId) {
+            const card = document.querySelector(`[data-class="${classId}"]`);
+            
+            if (card.classList.contains('selected')) {
+                card.classList.remove('selected');
+                selectedClasses = selectedClasses.filter(c => c !== classId);
+            } else if (selectedClasses.length < 2) {
+                card.classList.add('selected');
+                selectedClasses.push(classId);
+            }
+            
+            document.getElementById('btn-create').disabled = selectedClasses.length !== 2;
+        }
+
+        // ==================== CHARACTER CREATION ====================
+        function startGacha() {
+            const name = document.getElementById('input-name').value.trim();
+            if (!name) {
+                showModal(t('error'), t('enterName'));
+                return;
+            }
+            
+            // Apply ascension bonuses
+            const startStage = ascensionData.bonuses.startStage;
+            const startRealm = Math.floor((startStage - 1) / 9);
+            const actualStage = ((startStage - 1) % 9) + 1;
+            
+            gameState = {
+                name: name,
+                gender: document.getElementById('input-gender').value,
+                classes: [...selectedClasses],
+                bloodline: null,
+                realm: startRealm,
+                stage: actualStage,
+                hp: 100 + (ascensionData.bonuses.startStage * 10),
+                maxHp: 100 + (ascensionData.bonuses.startStage * 10),
+                qi: 100 + (ascensionData.bonuses.startStage * 10),
+                maxQi: 100 + (ascensionData.bonuses.startStage * 10),
+                exp: 0,
+                maxExp: 100,
+                age: 16,
+                stats: { 
+                    str: 10 + ascensionData.bonuses.startStage, 
+                    agi: 10 + ascensionData.bonuses.startStage, 
+                    int: 10 + ascensionData.bonuses.startStage, 
+                    vit: 10 + ascensionData.bonuses.startStage 
+                },
+                inventory: [],
+                equipment: { weapon: null, armor: null, accessory: null },
+                spiritStones: 100 + ascensionData.bonuses.startStones,
+                beastsKilled: 0,
+                playstyle: { attacks: 0, skills: 0, items: 0, flees: 0 },
+                sect: null,
+                evolvedClass: null,
+                totalPower: 0,
+                location: 0, // Index of locations
+                achievements: [],
+                dailyQuests: generateDailyQuests(),
+                questProgress: { hunt: 0, meditate: 0, explore: 0 },
+                ascended: false,
+                endgameUnlocked: false
+            };
+            
+            // Apply free bloodline roll from ascension
+            if (ascensionData.bonuses.freeRoll > 0) {
+                // Auto-roll rare+ bloodline
+                const rarePlus = rollRareBloodline();
+                gameState.bloodline = rarePlus;
+                applyBloodlineBonus();
+                showScreen('screen-game');
+                startGameStory();
+            } else {
+                showScreen('screen-gacha');
+            }
+        }
+
+        function rollRareBloodline() {
+            const rarities = ['Rare', 'Epic', 'Legendary', 'Mythic', 'Primordial'];
+            const weights = [50, 30, 15, 4, 1];
+            let rand = Math.random() * 100, cum = 0;
+            
+            for (let i = 0; i < rarities.length; i++) {
+                cum += weights[i];
+                if (rand <= cum) {
+                    const rarity = rarities[i];
+                    return {
+                        rarity: rarity,
+                        name: bloodlineNames[rarity][Math.floor(Math.random() * bloodlineNames[rarity].length)]
+                    };
+                }
+            }
+            return { rarity: 'Rare', name: 'Thunder Wolf' };
+        }
+
+        // ==================== GACHA SYSTEM ====================
+        function rollBloodlines() {
+            const btn = document.getElementById('btn-roll');
+            const list = document.getElementById('bloodline-list');
+            const orb = document.getElementById('gacha-orb');
+            
+            btn.disabled = true;
+            list.style.display = 'none';
+            
+            let rolls = 0;
+            const rollInterval = setInterval(() => {
+                const rarity = rollRarity();
+                const names = bloodlineNames[rarity];
+                const name = names[Math.floor(Math.random() * names.length)];
+                
+                orb.textContent = getRarityEmoji(rarity);
+                
+                rolls++;
+                if (rolls > 15) {
+                    clearInterval(rollInterval);
+                    showBloodlineResults();
+                }
+            }, 150);
+        }
+
+        function rollRarity() {
+            const rarities = ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary', 'Mythic', 'Primordial'];
+            const weights = [30, 25, 20, 15, 6, 3, 1];
+            let rand = Math.random() * 100, cum = 0;
+            
+            for (let i = 0; i < rarities.length; i++) {
+                cum += weights[i];
+                if (rand <= cum) return rarities[i];
+            }
+            return 'Common';
+        }
+
+        function getRarityEmoji(r) {
+            const emojis = { 'Common': '⚪', 'Uncommon': '🟢', 'Rare': '🔵', 'Epic': '🟣', 'Legendary': '🟠', 'Mythic': '🔴', 'Primordial': '🟡' };
+            return emojis[r] || '⚪';
+        }
+
+        function showBloodlineResults() {
+            const list = document.getElementById('bloodline-list');
+            const results = [];
+            
+            // Check unlock tier from ascension
+            const unlockTiers = ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary', 'Mythic', 'Primordial'];
+            const minTierIndex = unlockTiers.indexOf(ascensionData.bonuses.unlockTier);
+            
+            for (let i = 0; i < 10; i++) {
+                let rarity = rollRarity();
+                // Ensure minimum rarity based on ascension unlock
+                let rarityIndex = unlockTiers.indexOf(rarity);
+                if (rarityIndex < minTierIndex) {
+                    rarity = ascensionData.bonuses.unlockTier;
+                }
+                
+                const name = bloodlineNames[rarity][Math.floor(Math.random() * bloodlineNames[rarity].length)];
+                results.push({ rarity, name, id: i });
+            }
+            
+            gameState.rolledBloodlines = results;
+            
+            list.innerHTML = results.map((r, i) => `
+                <div class="bloodline-item rarity-${r.rarity}" id="bl-${i}" onclick="selectBloodline(${i})" style="padding: 15px; margin: 10px 0; border-radius: 10px; cursor: pointer; border-left: 5px solid;">
+                    <div>
+                        <div style="font-weight: bold;">${r.rarity}</div>
+                        <div>${r.name}</div>
+                    </div>
+                    <div style="font-size: 24px;">${getRarityEmoji(r.rarity)}</div>
+                </div>
+            `).join('');
+            
+            list.style.display = 'block';
+        }
+
+        function selectBloodline(index) {
+            document.querySelectorAll('.bloodline-item').forEach(el => {
+                el.style.opacity = '0.5';
+                el.classList.remove('selected');
+            });
+            
+            const selected = document.getElementById(`bl-${index}`);
+            selected.style.opacity = '1';
+            selected.classList.add('selected');
+            
+            selectedBloodline = gameState.rolledBloodlines[index];
+            document.getElementById('btn-confirm-bloodline').style.display = 'block';
+        }
+
+        function confirmBloodline() {
+            gameState.bloodline = selectedBloodline;
+            applyBloodlineBonus();
+            showScreen('screen-game');
+            startGameStory();
+        }
+
+        function applyBloodlineBonus() {
+            const multipliers = {
+                'Common': 1.1, 'Uncommon': 1.2, 'Rare': 1.35,
+                'Epic': 1.6, 'Legendary': 2.2, 'Mythic': 3.5, 'Primordial': 6.0
+            };
+            const mult = multipliers[gameState.bloodline.rarity] || 1.1;
+            
+            for (let stat in gameState.stats) {
+                gameState.stats[stat] = Math.floor(gameState.stats[stat] * mult);
+            }
+            gameState.maxHp = Math.floor(gameState.maxHp * mult);
+            gameState.maxQi = Math.floor(gameState.maxQi * mult);
+            gameState.hp = gameState.maxHp;
+            gameState.qi = gameState.maxQi;
+        }
+
+        function startGameStory() {
+            const story = document.getElementById('story-panel');
+            story.innerHTML = `
+                <p><strong>${gameState.name}</strong> ${t('welcomeText')} <span style="color: var(--gold)">${gameState.bloodline.rarity} ${gameState.bloodline.name}</span>!</p>
+                <p>${t('class')}: <strong>${gameState.classes.join(' & ')}</strong></p>
+                <p><em>"${t('awakenQuote')}"</em></p>
+            `;
+            updateTotalPower();
+            checkAscensionButton();
+        }
+
+        // ==================== GAME ACTIONS ====================
+        function actionCultivate() {
+            if (gameState.qi < 10) {
+                addStory(t('notEnoughQi'));
+                return;
+            }
+            
+            // Auto-cultivate from ascension bonus
+            const expMult = 1 + (ascensionData.bonuses.expBoost / 100);
+            
+            gameState.qi -= 10;
+            const gain = Math.floor((Math.random() * 15 + 10) * expMult);
+            gameState.exp += gain;
+            gameState.questProgress.meditate++;
+            
+            addStory(`${t('meditateGain')} +${gain} EXP`);
+            
+            if (gameState.exp >= gameState.maxExp) {
+                gameState.exp -= gameState.maxExp;
+                attemptBreakthrough();
+            }
+            
+            if (Math.random() < 0.05) {
+                gameState.age++;
+                if (gameState.age > 100 && gameState.realm < 2) {
+                    deathByAge();
+                    return;
+                }
+            }
+            
+            updateGameUI();
+            checkQuests();
+        }
+
+        function attemptBreakthrough() {
+            const successRate = 0.9 - (gameState.stage * 0.05);
+            
+            if (Math.random() < successRate) {
+                gameState.stage++;
+                if (gameState.stage > 9) {
+                    gameState.stage = 1;
+                    gameState.realm++;
+                    if (gameState.realm >= 2 && !gameState.sect) {
+                        unlockSect();
+                    }
+                    if (gameState.realm >= 10) {
+                        checkAscensionButton();
+                    }
+                }
+                
+                gameState.maxHp += 25;
+                gameState.maxQi += 35;
+                gameState.hp = gameState.maxHp;
+                gameState.qi = gameState.maxQi;
+                for (let s in gameState.stats) gameState.stats[s] += 3;
+                
+                addStory(`<span style="color: var(--gold); font-weight: bold;">🌟 ${t('breakthrough')} ${realms[gameState.realm]} ${t('stage')} ${gameState.stage}! 🌟</span>`);
+                updateTotalPower();
+            } else {
+                gameState.hp -= 15;
+                addStory(`<span style="color: #ff6b6b;">${t('breakthroughFail')}</span>`);
+                if (gameState.hp <= 0) nearDeathEvent();
+            }
+        }
+
+        function unlockSect() {
+            gameState.sect = {
+                name: gameState.name + ' Sect',
+                level: 1,
+                disciples: [],
+                reputation: 0
+            };
+            document.getElementById('btn-sect').style.display = 'block';
+            showModal(t('sectUnlocked'), t('sectDesc'));
+        }
+
+        function checkAscensionButton() {
+            if (gameState.realm >= 10 && gameState.stage >= 9) {
+                document.getElementById('btn-ascend').style.display = 'block';
+            }
+        }
+
+        function actionExplore() {
+            const events = [
+                { t: 'findHerb', effect: () => { gameState.hp = Math.min(gameState.maxHp, gameState.hp + 40); return t('heal40'); } },
+                { t: 'findRuins', effect: () => { gameState.stats.int += 3; return t('int3'); } },
+                { t: 'findMaster', effect: () => { gameState.stats.str += 2; gameState.stats.agi += 2; return t('str2agi2'); } },
+                { t: 'findTreasure', effect: () => { const s = Math.floor(Math.random() * 30) + 20 + ascensionData.bonuses.dropRate; gameState.spiritStones += s; return t('foundStones').replace('{0}', s); } },
+                { t: 'ambushed', effect: () => { startCombat(beasts[Math.floor(Math.random() * 3)]); return null; }, combat: true }
+            ];
+            
+            const evt = events[Math.floor(Math.random() * events.length)];
+            addStory(t(evt.t));
+            gameState.questProgress.explore++;
+            
+            if (!evt.combat) {
+                const result = evt.effect();
+                if (result) addStory(result);
+                updateGameUI();
+            }
+            checkQuests();
+        }
+
+        function actionHunt() {
+            const loc = locations[gameState.location];
+            const availableBeasts = beasts.filter(b => {
+                const tierMap = { 'Mortal': 1, 'Spirit': 2, 'Earth': 3, 'Heaven': 4 };
+                return tierMap[b.rank] <= loc.tier + 1;
+            });
+            const beast = availableBeasts[Math.floor(Math.random() * availableBeasts.length)];
+            startCombat(beast);
+        }
+
+        function startCombat(beast) {
+            currentEnemy = { ...beast, currentHp: beast.hp };
+            document.getElementById('combat-enemy-name').textContent = beast.name;
+            document.getElementById('combat-enemy-sprite').textContent = beast.emoji;
+            document.getElementById('combat-enemy-hp').textContent = beast.hp;
+            document.getElementById('combat-enemy-max').textContent = beast.hp;
+            document.getElementById('combat-enemy-rank').textContent = beast.rank + ' Beast';
+            document.getElementById('combat-enemy-bar').style.width = '100%';
+            document.getElementById('combat-log').innerHTML = `<div style="color: #ff6b6b;">⚔️ ${t('combatStart')} ${beast.name}!</div>`;
+            
+            showScreen('screen-combat');
+        }
+
+        function combatAttack() {
+            if (!currentEnemy) return;
+            
+            gameState.playstyle.attacks++;
+            
+            const isCrit = Math.random() < 0.2;
+            let dmg = Math.floor(gameState.stats.str * 2.5 + Math.random() * 15);
+            if (isCrit) dmg = Math.floor(dmg * 2.5);
+            
+            currentEnemy.currentHp -= dmg;
+            
+            const log = document.getElementById('combat-log');
+            const entry = document.createElement('div');
+            entry.style.margin = '5px 0';
+            entry.innerHTML = `${isCrit ? '💥 ' : '⚔️ '}${t('youAttack')} ${currentEnemy.name} ${isCrit ? t('critical') : ''} (-${dmg} HP)`;
+            log.insertBefore(entry, log.firstChild);
+            
+            updateEnemyBar();
+            
+            if (currentEnemy.currentHp <= 0) {
+                winCombat();
+                return;
+            }
+            
+            setTimeout(enemyAttack, 800);
+            checkClassEvolution();
+        }
+
+        function combatSkill() {
+            if (!currentEnemy || gameState.qi < 25) {
+                addCombatLog(t('notEnoughQi'));
+                return;
+            }
+            
+            gameState.qi -= 25;
+            gameState.playstyle.skills++;
+            
+            const skillNames = {
+                'Swordsman-Assassin': 'Shadow Blade',
+                'Swordsman-Mage': 'Arcane Slash',
+                'Warrior-BeastTamer': 'Primal Rage',
+                'Mage-Alchemist': 'Pill Explosion',
+                'Assassin-Alchemist': 'Venom Strike'
+            };
+            
+            const key = gameState.classes.sort().join('-');
+            const skillName = skillNames[key] || 'Mystic Technique';
+            
+            const dmg = Math.floor(gameState.stats.int * 4 + 50);
+            currentEnemy.currentHp -= dmg;
+            
+            addCombatLog(`✨ ${skillName}! ${t('damage')} ${dmg}`, 'purple');
+            updateEnemyBar();
+            updateGameUI();
+            
+            if (currentEnemy.currentHp <= 0) {
+                winCombat();
+                return;
+            }
+            
+            setTimeout(enemyAttack, 800);
+        }
+
+        function combatItem() {
+            if (gameState.spiritStones >= 10) {
+                gameState.spiritStones -= 10;
+                const heal = Math.min(50, gameState.maxHp - gameState.hp);
+                gameState.hp += heal;
+                addCombatLog(`🧪 ${t('usedPill')} +${heal} HP`, 'green');
+                updateGameUI();
+                setTimeout(enemyAttack, 800);
+            } else {
+                addCombatLog(t('notEnoughStones'), 'red');
+            }
+        }
+
+        function combatFlee() {
+            if (Math.random() < 0.4) {
+                addCombatLog(t('fleeSuccess'), 'green');
+                setTimeout(() => showScreen('screen-game'), 1000);
+            } else {
+                addCombatLog(t('fleeFail'), 'red');
+                enemyAttack();
+            }
+        }
+
+        function enemyAttack() {
+            if (!currentEnemy) return;
+            
+            const dmg = Math.max(1, currentEnemy.dmg - Math.floor(gameState.stats.vit / 4));
+            gameState.hp -= dmg;
+            
+            addCombatLog(`💥 ${currentEnemy.name} ${t('attacks')} (-${dmg} HP)`, 'red');
+            
+            if (gameState.hp <= gameState.maxHp * 0.15 && gameState.hp > 0) {
+                if (Math.random() < 0.4) nearDeathEvent();
+            }
+            
+            updateGameUI();
+            
+            if (gameState.hp <= 0) {
+                gameState.hp = 1;
+                nearDeathEvent();
+            }
+        }
+
+        function nearDeathEvent() {
+            const events = [
+                { t: 'awakenPotential', stat: 'all', val: 5 },
+                { t: 'bloodlineEvolve', stat: 'bloodline', val: 0 },
+                { t: 'ironWill', stat: 'vit', val: 8 }
+            ];
+            
+            const evt = events[Math.floor(Math.random() * events.length)];
+            
+            if (evt.stat === 'all') {
+                for (let s in gameState.stats) gameState.stats[s] += evt.val;
+            } else if (evt.stat !== 'bloodline') {
+                gameState.stats[evt.stat] += evt.val;
+            } else {
+                const rarities = ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary', 'Mythic', 'Primordial'];
+                const idx = rarities.indexOf(gameState.bloodline.rarity);
+                if (idx < rarities.length - 1) {
+                    gameState.bloodline.rarity = rarities[idx + 1];
+                }
+            }
+            
+            gameState.hp = Math.floor(gameState.maxHp * 0.3);
+            showModal(t('nearDeath'), t(evt.t));
+            updateTotalPower();
+            updateGameUI();
+        }
+
+        function winCombat() {
+            const exp = currentEnemy.exp;
+            const stones = currentEnemy.stones;
+            
+            gameState.exp += exp;
+            gameState.spiritStones += stones;
+            gameState.beastsKilled++;
+            gameState.questProgress.hunt++;
+            
+            if (Math.random() < 0.6 + (ascensionData.bonuses.dropRate / 100)) {
+                gameState.inventory.push({ type: 'core', rank: currentEnemy.rank });
+            }
+            
+            addCombatLog(`🎉 ${t('defeated')} ${currentEnemy.name}! +${exp} EXP`, 'gold');
+            addCombatLog(`💰 ${stones} ${t('spiritStones')}`, 'gold');
+            
+            setTimeout(() => {
+                showScreen('screen-game');
+                updateGameUI();
+                checkQuests();
+            }, 1500);
+        }
+
+        function updateEnemyBar() {
+            const pct = Math.max(0, (currentEnemy.currentHp / currentEnemy.hp) * 100);
+            document.getElementById('combat-enemy-bar').style.width = pct + '%';
+            document.getElementById('combat-enemy-hp').textContent = Math.max(0, currentEnemy.currentHp);
+        }
+
+        function addCombatLog(text, color) {
+            const log = document.getElementById('combat-log');
+            const entry = document.createElement('div');
+            entry.style.margin = '5px 0';
+            entry.style.color = color || '#fff';
+            entry.innerHTML = text;
+            log.insertBefore(entry, log.firstChild);
+        }
+
+        function checkClassEvolution() {
+            const total = gameState.playstyle.attacks + gameState.playstyle.skills + gameState.playstyle.items + gameState.playstyle.flees;
+            
+            if (total >= 25 && !gameState.evolvedClass) {
+                const evolved = generateEvolvedClass(gameState.classes[0], gameState.classes[1]);
+                gameState.evolvedClass = evolved;
+                
+                for (let s in gameState.stats) gameState.stats[s] += 15;
+                gameState.maxHp += 50;
+                gameState.maxQi += 70;
+                
+                showModal(t('classEvolved'), `${t('evolvedTo')} <strong style="color: var(--gold);">${evolved}</strong>!<br><br>${t('statsIncreased')}`);
+                updateTotalPower();
+                updateGameUI();
+            }
+        }
+
+        function generateEvolvedClass(c1, c2) {
+            const combos = {
+                'Swordsman-Assassin': 'Shadow Blade Sovereign',
+                'Swordsman-Mage': 'Arcane Sword Saint',
+                'Swordsman-Warrior': 'Blade Guardian',
+                'Swordsman-Alchemist': 'Pill Sword Immortal',
+                'Swordsman-BeastTamer': 'Beast Sword King',
+                'Assassin-Mage': 'Void Phantom',
+                'Assassin-Warrior': 'Blood Edge',
+                'Assassin-Alchemist': 'Venom Lord',
+                'Assassin-BeastTamer': 'Shadow Beast',
+                'Mage-Warrior': 'Battle Mage',
+                'Mage-Alchemist': 'Pill Flame Sage',
+                'Mage-BeastTamer': 'Spirit Caller',
+                'Warrior-Alchemist': 'Iron Body Alchemist',
+                'Warrior-BeastTamer': 'Beast Warrior',
+                'Alchemist-BeastTamer': 'Beast Pill Master'
+            };
+            
+            const key = [c1, c2].sort().join('-');
+            return combos[key] || c1 + '-' + c2 + ' Hybrid';
+        }
+
+        // ==================== UI UPDATES ====================
+        function updateGameUI() {
+            if (!gameState) return;
+            
+            document.getElementById('game-name').textContent = gameState.name;
+            document.getElementById('game-realm').textContent = `${realms[gameState.realm]} ${t('stage')} ${gameState.stage}`;
+            document.getElementById('game-stones').textContent = gameState.spiritStones;
+            document.getElementById('game-power').textContent = gameState.totalPower;
+            
+            document.getElementById('text-hp').textContent = `${gameState.hp}/${gameState.maxHp}`;
+            document.getElementById('bar-hp').style.width = (gameState.hp / gameState.maxHp * 100) + '%';
+            
+            document.getElementById('text-qi').textContent = `${gameState.qi}/${gameState.maxQi}`;
+            document.getElementById('bar-qi').style.width = (gameState.qi / gameState.maxQi * 100) + '%';
+            
+            document.getElementById('text-exp').textContent = `${gameState.exp}/${gameState.maxExp}`;
+            document.getElementById('bar-exp').style.width = (gameState.exp / gameState.maxExp * 100) + '%';
+            
+            document.getElementById('current-location').textContent = locations[gameState.location].name;
+        }
+
+        function updateTotalPower() {
+            let power = 0;
+            for (let s in gameState.stats) power += gameState.stats[s];
+            power += gameState.maxHp / 10;
+            power += gameState.maxQi / 10;
+            power += gameState.realm * 100;
+            power += gameState.stage * 10;
+            gameState.totalPower = Math.floor(power);
+        }
+
+        function addStory(text) {
+            const story = document.getElementById('story-panel');
+            const p = document.createElement('p');
+            p.innerHTML = text;
+            story.insertBefore(p, story.firstChild);
+            
+            while (story.children.length > 5) {
+                story.removeChild(story.lastChild);
+            }
+        }
+
+        // ==================== WORLD MAP ====================
+        function openWorldMap() {
+            const container = document.getElementById('map-locations');
+            container.innerHTML = locations.map((loc, i) => `
+                <button class="btn btn-secondary" onclick="travelTo(${i})" style="text-align: center;">
+                    <div style="font-size: 30px;">${loc.emoji}</div>
+                    <div style="font-size: 12px;">${loc.name}</div>
+                    <div style="font-size: 10px; color: #888;">Tier ${loc.tier}</div>
+                </button>
+            `).join('');
+            showScreen('screen-map');
+        }
+
+        function travelTo(index) {
+            gameState.location = index;
+            showScreen('screen-game');
+            addStory(`📍 Traveled to ${locations[index].name}`);
+        }
+
+        // ==================== INVENTORY & CRAFTING ====================
+        function openInventory() {
+            const content = document.getElementById('inventory-content');
+            if (gameState.inventory.length === 0) {
+                content.innerHTML = `<p style="text-align: center; color: #888;">${t('inventoryEmpty')}</p>`;
+            } else {
+                content.innerHTML = gameState.inventory.map(item => `
+                    <div class="card" style="display: flex; justify-content: space-between; align-items: center; padding: 10px;">
+                        <span>${item.rank} ${item.type}</span>
+                        <span style="color: #888;">x1</span>
+                    </div>
+                `).join('');
+            }
+            showScreen('screen-inventory');
+        }
+
+        function openCrafting() {
+            document.getElementById('crafting-content').innerHTML = `
+                <div class="card">
+                    <h4 style="color: var(--gold); margin-bottom: 10px;">${t('alchemy')}</h4>
+                    <p style="font-size: 12px; color: #888;">Combine beast cores with herbs to create pills</p>
+                    <button class="btn btn-primary" onclick="craftPill()" style="margin-top: 10px;">Craft Healing Pill (10 stones)</button>
+                </div>
+            `;
+            showScreen('screen-crafting');
+        }
+
+        function craftPill() {
+            if (gameState.spiritStones < 10) {
+                showNotification(t('notEnoughStones'));
+                return;
+            }
+            gameState.spiritStones -= 10;
+            gameState.inventory.push({ type: 'Healing Pill', rank: 'Common' });
+            showNotification('Crafted Healing Pill!');
+        }
+
+        // ==================== MARKET ====================
+        function openMarket() {
+            document.getElementById('market-stones').textContent = gameState.spiritStones;
+            const items = [
+                { name: 'Healing Herb', price: 15, emoji: '🌿' },
+                { name: 'Qi Crystal', price: 50, emoji: '💎' },
+                { name: 'Iron Ore', price: 30, emoji: '⛏️' }
+            ];
+            
+            document.getElementById('market-content').innerHTML = items.map(item => `
+                <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 24px;">${item.emoji}</span>
+                        <span>${item.name}</span>
+                    </div>
+                    <button class="btn btn-primary" style="width: auto; padding: 8px 15px; font-size: 12px;" onclick="buyItem('${item.name}', ${item.price})">
+                        ${item.price} 💎
+                    </button>
+                </div>
+            `).join('');
+            
+            showScreen('screen-market');
+        }
+
+        function buyItem(name, price) {
+            if (gameState.spiritStones < price) {
+                showNotification(t('notEnoughStones'));
+                return;
+            }
+            gameState.spiritStones -= price;
+            gameState.inventory.push({ type: name, rank: 'Common' });
+            document.getElementById('market-stones').textContent = gameState.spiritStones;
+            showNotification(`Bought ${name}`);
+        }
+
+        // ==================== SECT SYSTEM ====================
+        function openSect() {
+            if (!gameState.sect) return;
+            
+            document.getElementById('sect-name').textContent = gameState.sect.name;
+            document.getElementById('sect-info').textContent = `Level ${gameState.sect.level} • ${gameState.sect.disciples.length} ${t('disciples')}`;
+            
+            const discList = document.getElementById('sect-disciples');
+            if (gameState.sect.disciples.length === 0) {
+                discList.innerHTML = `<p style="color: #888; text-align: center;">No disciples yet</p>`;
+            } else {
+                discList.innerHTML = gameState.sect.disciples.map(d => `
+                    <div style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                        <strong>${d.name}</strong> - <span style="color: var(--gold);">${d.talent}</span>
+                    </div>
+                `).join('');
+            }
+            
+            showScreen('screen-sect');
+        }
+
+        function recruitDisciple() {
+            if (gameState.spiritStones < 50) {
+                showNotification(t('notEnoughStones'));
+                return;
+            }
+            
+            gameState.spiritStones -= 50;
+            const talents = ['Trash', 'Normal', 'Elite', 'Genius', 'Heaven Chosen', 'Monster', 'Divine'];
+            const weights = [15, 30, 25, 15, 10, 4, 1];
+            
+            let rand = Math.random() * 100, cum = 0, talent = 'Normal';
+            for (let i = 0; i < talents.length; i++) {
+                cum += weights[i];
+                if (rand <= cum) { talent = talents[i]; break; }
+            }
+            
+            const names = ['Xiao', 'Long', 'Fei', 'Ying', 'Hua', 'Ming', 'Chen', 'Wu'];
+            const name = names[Math.floor(Math.random() * names.length)] + ' ' + String.fromCharCode(65 + Math.floor(Math.random() * 26));
+            
+            gameState.sect.disciples.push({ name, talent });
+            gameState.sect.reputation += 10;
+            
+            showModal(t('discipleRecruited'), `<strong>${name}</strong><br>${t('talent')}: ${talent}`);
+            updateGameUI();
+        }
+
+        // ==================== QUEST SYSTEM ====================
+        function generateDailyQuests() {
+            return [
+                { id: 'hunt', text: 'Hunt 5 beasts', target: 5, reward: 50 },
+                { id: 'meditate', text: 'Meditate 3 times', target: 3, reward: 30 },
+                { id: 'explore', text: 'Explore 2 locations', target: 2, reward: 40 }
+            ];
+        }
+
+        function openQuest() {
+            const container = document.getElementById('daily-quests');
+            container.innerHTML = gameState.dailyQuests.map(q => {
+                const progress = gameState.questProgress[q.id] || 0;
+                const complete = progress >= q.target;
+                return `
+                    <div class="card" style="opacity: ${complete ? 0.5 : 1};">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>${q.text}</span>
+                            <span style="color: ${complete ? 'var(--success)' : 'var(--gold)'};">
+                                ${Math.min(progress, q.target)}/${q.target}
+                            </span>
+                        </div>
+                        <div style="font-size: 12px; color: #888; margin-top: 5px;">
+                            Reward: ${q.reward} 💎
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            showScreen('screen-quest');
+        }
+
+        function checkQuests() {
+            gameState.dailyQuests.forEach(q => {
+                if (gameState.questProgress[q.id] >= q.target && !q.completed) {
+                    q.completed = true;
+                    gameState.spiritStones += q.reward;
+                    showNotification(`Quest completed! +${q.reward} 💎`);
+                }
+            });
+        }
+
+        // ==================== ASCENSION SYSTEM ====================
+        function openAscension() {
+            showScreen('screen-ascension');
+        }
+
+        function chooseAscension(ascend) {
+            if (ascend) {
+                // ASCEND - Become divine
+                const essenceGain = 100 + (gameState.totalPower / 10);
+                ascensionData.essence += Math.floor(essenceGain);
+                ascensionData.count++;
+                
+                // Add to legends
+                ascensionData.legends.push({
+                    name: gameState.name,
+                    realm: realms[gameState.realm],
+                    bloodline: gameState.bloodline.rarity + ' ' + gameState.bloodline.name,
+                    power: gameState.totalPower,
+                    date: new Date().toISOString()
+                });
+                
+                // Update bonuses
+                updateAscensionBonuses();
+                saveAscensionData();
+                
+                showModal(t('ascend'), `${t('ascendDesc')}<br><br>+${Math.floor(essenceGain)} Divine Essence!`);
+                setTimeout(() => {
+                    gameState = null;
+                    showScreen('screen-hall-legends');
+                }, 2000);
+            } else {
+                // STAY - Endgame unlock
+                gameState.endgameUnlocked = true;
+                gameState.ascended = false;
+                showModal(t('stay'), t('stayDesc'));
+                showScreen('screen-game');
+            }
+        }
+
+        function updateAscensionBonuses() {
+            const count = ascensionData.count;
+            const b = ascensionData.bonuses;
+            
+            b.expBoost = Math.min(50 + (count * 5), 100);
+            b.startStones = Math.min(count * 100, 1000);
+            b.freeRoll = Math.min(Math.floor(count / 2), 3);
+            b.dropRate = Math.min(count * 5, 50);
+            
+            const tiers = ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary', 'Mythic', 'Primordial'];
+            b.unlockTier = tiers[Math.min(count, 6)];
+            
+            b.startStage = Math.min(1 + Math.floor(count / 2), 9);
+            b.extraClass = Math.min(Math.floor(count / 7), 1);
+            b.autoCultivate = count >= 8;
+        }
+
+        function updateHallOfLegends() {
+            document.getElementById('total-ascensions').textContent = ascensionData.count;
+            document.getElementById('divine-essence').textContent = ascensionData.essence;
+            document.getElementById('shop-essence').textContent = ascensionData.essence;
+            
+            const bonusText = ascensionData.count > 0 
+                ? `+${ascensionData.bonuses.expBoost}% EXP, +${ascensionData.bonuses.startStones} Stones Start`
+                : t('noBonus');
+            document.getElementById('ascension-bonus').textContent = bonusText;
+            
+            const legendsList = document.getElementById('legends-list');
+            if (ascensionData.legends.length === 0) {
+                legendsList.innerHTML = `<p style="color: #888; text-align: center;">No ascended heroes yet</p>`;
+            } else {
+                legendsList.innerHTML = ascensionData.legends.map(l => `
+                    <div class="card" style="padding: 10px; margin-bottom: 8px;">
+                        <strong style="color: var(--gold);">${l.name}</strong>
+                        <div style="font-size: 12px; color: #888;">
+                            ${l.realm} • ${l.bloodline}<br>
+                            Power: ${l.power.toLocaleString()}
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            // Divine shop items
+            const shopItems = [
+                { name: 'Unlock Epic Bloodline', cost: 500, effect: () => { ascensionData.bonuses.unlockTier = 'Epic'; } },
+                { name: 'Auto-Cultivate', cost: 1000, effect: () => { ascensionData.bonuses.autoCultivate = true; } },
+                { name: '+10% EXP Boost', cost: 200, effect: () => { ascensionData.bonuses.expBoost += 10; } }
+            ];
+            
+            document.getElementById('divine-shop-items').innerHTML = shopItems.map(item => `
+                <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>${item.name}</span>
+                    <button class="btn btn-gold" style="width: auto; padding: 8px 15px; font-size: 12px;" 
+                        onclick="buyDivineItem('${item.name}', ${item.cost})" 
+                        ${ascensionData.essence < item.cost ? 'disabled' : ''}>
+                        ${item.cost} ✨
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function buyDivineItem(name, cost) {
+            if (ascensionData.essence < cost) return;
+            ascensionData.essence -= cost;
+            saveAscensionData();
+            updateHallOfLegends();
+            showNotification(`Purchased: ${name}`);
+        }
+
+        function openDivineShop() {
+            updateHallOfLegends();
+            showScreen('screen-divine-shop');
+        }
+
+        // ==================== SAVE SYSTEM ====================
+        function saveGameManual() {
+            if (!gameState) {
+                showModal(t('error'), t('noGame'));
+                return;
+            }
+            saveGame();
+            showNotification(t('gameSaved'));
+        }
+
+        function saveGame() {
+            const saveData = {
+                ...gameState,
+                saveDate: new Date().toISOString(),
+                version: '1.0'
+            };
+            localStorage.setItem('murim_save', JSON.stringify(saveData));
+        }
+
+        function loadSaveSlots() {
+            const container = document.getElementById('save-slots');
+            const saved = localStorage.getItem('murim_save');
+            
+            if (saved) {
+                const data = JSON.parse(saved);
+                const date = new Date(data.saveDate).toLocaleDateString();
+                container.innerHTML = `
+                    <div class="card" onclick="loadGame()" style="cursor: pointer;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong style="color: var(--gold);">${data.name}</strong>
+                                <div style="font-size: 12px; color: #888;">
+                                    ${realms[data.realm]} ${t('stage')} ${data.stage} • ${date}
+                                </div>
+                            </div>
+                            <span style="color: var(--gold);">▶</span>
+                        </div>
+                    </div>
+                    <div class="card" style="opacity: 0.5;">
+                        <div style="color: #666;">${t('emptySlot')} 2</div>
+                    </div>
+                    <div class="card" style="opacity: 0.5;">
+                        <div style="color: #666;">${t('emptySlot')} 3</div>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div class="card" style="opacity: 0.5;"><div style="color: #666;">${t('emptySlot')} 1</div></div>
+                    <div class="card" style="opacity: 0.5;"><div style="color: #666;">${t('emptySlot')} 2</div></div>
+                    <div class="card" style="opacity: 0.5;"><div style="color: #666;">${t('emptySlot')} 3</div></div>
+                `;
+            }
+        }
+
+        function loadGame() {
+            const saved = localStorage.getItem('murim_save');
+            if (!saved) return;
+            
+            gameState = JSON.parse(saved);
+            selectedClasses = gameState.classes;
+            
+            document.getElementById('btn-sect').style.display = gameState.sect ? 'block' : 'none';
+            checkAscensionButton();
+            
+            updateGameUI();
+            showScreen('screen-game');
+            
+            const story = document.getElementById('story-panel');
+            story.innerHTML = `<p>${t('welcomeBack')} ${gameState.name}!</p>`;
+        }
+
+        function exportSave() {
+            if (!gameState) {
+                showModal(t('error'), t('noGame'));
+                return;
+            }
+            
+            const data = JSON.stringify(gameState, null, 2);
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `murim_${gameState.name}_${Date.now()}.json`;
+            a.click();
+            
+            URL.revokeObjectURL(url);
+            showNotification(t('exported'));
+        }
+
+        function importSave(input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    gameState = data;
+                    selectedClasses = data.classes;
+                    
+                    document.getElementById('btn-sect').style.display = gameState.sect ? 'block' : 'none';
+                    checkAscensionButton();
+                    
+                    updateGameUI();
+                    showScreen('screen-game');
+                    showNotification(t('imported'));
+                } catch (err) {
+                    showModal(t('error'), t('invalidFile'));
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function startAutoSave() {
+            stopAutoSave();
+            autoSaveInterval = setInterval(() => saveGame(), 30000);
+        }
+
+        function stopAutoSave() {
+            if (autoSaveInterval) clearInterval(autoSaveInterval);
+        }
+
+        // ==================== LEADERBOARD ====================
+        function generateLeaderboard() {
+            updateLeaderboardView();
+        }
+
+        function switchLB(type) {
+            currentLB = type;
+            document.querySelectorAll('.lb-tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            updateLeaderboardView();
+        }
+
+        function updateLeaderboardView() {
+            const container = document.getElementById('leaderboard-content');
+            const entries = generateLBEntries(currentLB);
+            
+            container.innerHTML = entries.map((e, i) => `
+                <div style="display: flex; align-items: center; padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <div style="width: 40px; text-align: center; font-weight: bold; color: ${i < 3 ? 'var(--gold)' : '#888'}; font-size: ${i < 3 ? '20px' : '16px'};">
+                        ${i + 1}
+                    </div>
+                    <div style="flex: 1; margin-left: 15px;">
+                        <div style="font-weight: bold;">${e.name} ${e.isPlayer ? '(You)' : ''}</div>
+                        <div style="font-size: 11px; color: #888;">${e.details}</div>
+                    </div>
+                    <div style="color: var(--gold); font-weight: bold;">
+                        ${e.score.toLocaleString()}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function generateLBEntries(type) {
+            const names = ['Li Ming', 'Wang Chen', 'Zhang Wei', 'Liu Feng', 'Chen Yu', 'Yang Xiao', 'Zhao Long', 'Wu Tian', 'Huang Fei'];
+            const entries = [];
+            
+            for (let i = 0; i < 9; i++) {
+                entries.push(generateLBEntry(names[i], type, false));
+            }
+            
+            if (gameState) {
+                entries.push(generateLBEntry(gameState.name, type, true));
+            } else {
+                entries.push(generateLBEntry('???', type, true));
+            }
+            
+            entries.sort((a, b) => b.score - a.score);
+            return entries.slice(0, 10);
+        }
+
+        function generateLBEntry(name, type, isPlayer) {
+            let score, details;
+            
+            if (isPlayer && gameState) {
+                switch(type) {
+                    case 'overall': score = gameState.totalPower; details = `${realms[gameState.realm]} Stage ${gameState.stage}`; break;
+                    case 'combat': score = gameState.stats.str * 100; details = `${gameState.classes[0]}`; break;
+                    case 'agility': score = gameState.stats.agi * 100; details = `${gameState.age} years`; break;
+                    case 'qi': score = gameState.stats.int * 100; details = `${gameState.maxQi} Qi`; break;
+                    case 'body': score = gameState.stats.vit * 100; details = `${gameState.maxHp} HP`; break;
+                    case 'sect': score = gameState.sect ? gameState.sect.reputation + 1000 : 0; details = gameState.sect ? gameState.sect.name : 'No Sect'; break;
+                    case 'wealth': score = gameState.spiritStones; details = `${gameState.inventory.length} items`; break;
+                    case 'hunter': score = gameState.beastsKilled * 100; details = `${gameState.beastsKilled} kills`; break;
+                    case 'speed': score = Math.max(0, 10000 - (gameState.age * 50) + (gameState.realm * 1000)); details = `${realms[gameState.realm]} @ ${gameState.age}`; break;
+                    default: score = 0;
+                }
+            } else {
+                score = Math.floor(Math.random() * 5000) + 1000;
+                details = type === 'sect' ? 'Heavenly Sword Sect' : `Stage ${Math.floor(Math.random() * 9) + 1}`;
+            }
+            
+            return { name, score, details, isPlayer };
+        }
+
+        // ==================== UTILITY ====================
+        function openMenu() {
+            showScreen('screen-settings');
+        }
+
+        function deathByAge() {
+            showModal(t('death'), t('deathAge'));
+            setTimeout(() => {
+                gameState = null;
+                showScreen('screen-menu');
+            }, 3000);
+        }
+
+        function showModal(title, text) {
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-text').innerHTML = text;
+            document.getElementById('modal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+        }
+
+        function showNotification(text) {
+            const existing = document.querySelector('.notification');
+            if (existing) existing.remove();
+            
+            const notif = document.createElement('div');
+            notif.className = 'notification';
+            notif.textContent = text;
+            document.body.appendChild(notif);
+            
+            setTimeout(() => notif.remove(), 3000);
+        }
+
+        // Initialize
+        window.onload = init;
+    </script>
+</body>
+</html>
